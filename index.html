@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 활용하여 토론 준비하기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: #e8e5de;
+    --text: #1a1916;
+    --muted: #8a8680;
+    --accent: #2d6a4f;
+    --accent-light: #e8f4ee;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-top: 1rem;
+  }
+
+  .subject-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    background: var(--border);
+    padding: 0.3rem 0.8rem;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  .page-title {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.88rem;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  .flow {
+    max-width: 680px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+
+  .step:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: white;
+    background: var(--step-color, var(--accent));
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0;
+  }
+
+  .step-info { flex: 1; }
+
+  .step-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.15rem;
+  }
+
+  .step-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .tag-small {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 0.18rem 0.55rem;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .step-body { padding: 1.1rem 1.4rem; }
+
+  .step-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    line-height: 1.65;
+  }
+
+  .issue-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--step-color, var(--accent));
+    line-height: 1.55;
+    margin-bottom: 0.45rem;
+    margin-top: 0.8rem;
+  }
+  .issue-label:first-child { margin-top: 0; }
+
+  .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--step-color, var(--accent));
+    color: white;
+    border-color: var(--step-color, var(--accent));
+  }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--step-color, var(--accent));
+    border-color: var(--step-color, var(--accent));
+  }
+  .btn-outline:hover { background: #f0f7ff; transform: translateY(-1px); }
+
+  .btn-padlet { background: #ff4a60; color: white; border-color: #ff4a60; }
+  .btn-padlet:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  .btn-menti { background: #6739b7; color: white; border-color: #6739b7; }
+  .btn-menti:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  .btn-classroom { background: #1a73e8; color: white; border-color: #1a73e8; }
+  .btn-classroom:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  .s1 { --step-color: #2d6a4f; }
+  .s2 { --step-color: #1e4d8c; }
+  .s3 { --step-color: #7b3f9e; }
+  .s4 { --step-color: #c44b1a; }
+  .s5 { --step-color: #4a5e1a; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--border);
+    font-size: 1.1rem;
+    padding: 0.1rem 0;
+  }
+
+  .sep {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 0.8rem 0;
+  }
+
+  @media (max-width: 480px) {
+    .step-header { padding: 0.9rem 1rem; }
+    .step-body { padding: 0.9rem 1rem; }
+    .btn { font-size: 0.78rem; padding: 0.5rem 0.85rem; }
+    .page-title { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1 class="page-title">지식과 정보를 잇고 논리의 힘을 기르는<br>BRIDGE 토론 프로젝트</h1>
+  <p class="page-subtitle">선생님 안내에 따라 단계별로 진행해요</p>
+</div>
+
+<div class="flow">
+
+  <!-- 도입 -->
+  <div class="step s1">
+    <div class="step-header">
+      <div class="step-num">준</div>
+      <div class="step-info">
+        <div class="step-label">준비</div>
+        <div class="step-title">지난 시간 배운 내용 확인</div>
+      </div>
+
+    </div>
+    <div class="step-body">
+      <p class="step-desc">지난 시간에 배운 내용을 퀴즈로 확인해봐요.</p>
+      <div class="btn-group">
+        <a href="https://www.menti.com/alqvc5oofo63" target="_blank" class="btn btn-menti">🙋 멘티미터 퀴즈 참여하기</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <!-- 활동1 -->
+  <div class="step s2">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-info">
+        <div class="step-label">활동 1</div>
+        <div class="step-title">AI 챗봇 활용 핵심쟁점 찾기</div>
+      </div>
+
+    </div>
+    <div class="step-body">
+      <p class="step-desc">AI와 대화하며 모둠이 맡은 논제의 핵심 쟁점을 찾습니다. 선택한 핵심 쟁점 1개를 패들렛에 기록하세요.</p>
+      <div class="btn-group">
+        <a href="https://gemini.google.com/gem/067923d6bbb0" target="_blank" class="btn btn-primary">🤖 핵심쟁점찾기 챗봇</a>
+        <a href="https://padlet.com/smaria10121/1-7acqnzzqz8lpsh2x" target="_blank" class="btn btn-padlet">📌 패들렛 제출</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <!-- 활동2 -->
+  <div class="step s3">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-info">
+        <div class="step-label">활동 2</div>
+        <div class="step-title">AI 챗봇 활용 토론 개요서 작성</div>
+      </div>
+
+    </div>
+    <div class="step-body">
+      <p class="step-desc">모둠이 맡은 쟁점의 챗봇을 선택해 근거를 탐색하고, 찾은 근거를 패들렛에 정리하세요.</p>
+
+      <div class="issue-label">쟁점 1 · 트윈 사이보그를 통한 육아는 부작용보다 이익이 더 큰가?</div>
+      <div class="btn-group">
+        <a href="https://gemini.google.com/gem/6ebcafc47c0b" target="_blank" class="btn btn-primary">🔍 근거찾기 챗봇</a>
+      </div>
+
+      <hr class="sep">
+
+      <div class="issue-label">쟁점 2 · 자녀의 성장에 정서적 유대가 부족한 것이 기능적 돌봄이 부족한 것보다 더 심각한 문제를 낳는가?</div>
+      <div class="btn-group">
+        <a href="https://gemini.google.com/gem/87e134303e79" target="_blank" class="btn btn-primary">🔍 근거찾기 챗봇</a>
+      </div>
+
+      <hr class="sep">
+
+      <div class="issue-label">쟁점 3 · 인간적 유대보다 효율적 성과를 우선하는 문화가 직장과 개인에게 더 이로운가?</div>
+      <div class="btn-group">
+        <a href="https://gemini.google.com/gem/9d1d773308da" target="_blank" class="btn btn-primary">🔍 근거찾기 챗봇</a>
+      </div>
+
+      <hr class="sep">
+
+      <div class="btn-group">
+        <a href="https://padlet.com/smaria10121/2-ai-5rw2wnb4l3a1xawg" target="_blank" class="btn btn-padlet">📌 패들렛 제출</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <!-- 활동3 -->
+  <div class="step s4">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-info">
+        <div class="step-label">활동 3</div>
+        <div class="step-title">'AI VS 모둠' 모의토론</div>
+      </div>
+
+    </div>
+    <div class="step-body">
+      <p class="step-desc">모둠이 맡은 쟁점의 챗봇을 선택해 AI와 토론 말하기 연습을 해봐요.</p>
+
+      <div class="issue-label">쟁점 1 · 트윈 사이보그를 통한 육아는 부작용보다 이익이 더 큰가?</div>
+      <div class="btn-group">
+        <a href="https://gemini.google.com/gem/f19c0f9a0ce4" target="_blank" class="btn btn-primary">🗣️ 모의토론 챗봇</a>
+      </div>
+
+      <hr class="sep">
+
+      <div class="issue-label">쟁점 2 · 자녀의 성장에 정서적 유대가 부족한 것이 기능적 돌봄이 부족한 것보다 더 심각한 문제를 낳는가?</div>
+      <div class="btn-group">
+        <a href="https://gemini.google.com/gem/587f19bf4e2a" target="_blank" class="btn btn-primary">🗣️ 모의토론 챗봇</a>
+      </div>
+
+      <hr class="sep">
+
+      <div class="issue-label">쟁점 3 · 인간적 유대보다 효율적 성과를 우선하는 문화가 직장과 개인에게 더 이로운가?</div>
+      <div class="btn-group">
+        <a href="https://gemini.google.com/gem/9d1d773308da" target="_blank" class="btn btn-primary">🗣️ 모의토론 챗봇</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <!-- 정리 -->
+  <div class="step s5">
+    <div class="step-header">
+      <div class="step-num">끝</div>
+      <div class="step-info">
+        <div class="step-label">마무리</div>
+        <div class="step-title">성찰 일지 작성</div>
+      </div>
+
+    </div>
+    <div class="step-body">
+      <p class="step-desc">오늘 수업에서 배운 점, 느낀 점을 성찰 일지로 작성해요.</p>
+      <div class="btn-group">
+        <a href="https://classroom.google.com/c/ODU5ODEyNTIzMTAw/a/Nzk4MDcyNzc5OTM0/details" target="_blank" class="btn btn-classroom">📝 성찰 일지 작성하기</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
